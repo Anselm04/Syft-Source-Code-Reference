@@ -1,0 +1,32 @@
+{
+  "source": "https://github.com/anchore/syft.git",
+  "commit": "e543a0007a0a2a812d13815a021b7a927f9013ac",
+  "number_of_original_workflow_files": 4,
+  "original_ci_is_disabled": true,
+  "files": [
+    {
+      "upstream_path": ".github/workflows/codeql.yaml",
+      "reference_path": "upstream-workflow-snapshots/syft/.github/workflows/codeql.yaml",
+      "git_blob": "022c2b9cb993aa5afece525253f153eceacb1df2",
+      "original_mode": "100644"
+    },
+    {
+      "upstream_path": ".github/workflows/release.yaml",
+      "reference_path": "upstream-workflow-snapshots/syft/.github/workflows/release.yaml",
+      "git_blob": "049e62039d273ed7e01aefffa7a0c856987df860",
+      "original_mode": "100644"
+    },
+    {
+      "upstream_path": ".github/workflows/validate-github-actions.yaml",
+      "reference_path": "upstream-workflow-snapshots/syft/.github/workflows/validate-github-actions.yaml",
+      "git_blob": "98f512ede0c3c051b7df45dfa6cf7124a0373344",
+      "original_mode": "100644"
+    },
+    {
+      "upstream_path": ".github/workflows/validations.yaml",
+      "reference_path": "upstream-workflow-snapshots/syft/.github/workflows/validations.yaml",
+      "git_blob": "8f93992dda85453d964435ae889ff44eb41a9059",
+      "original_mode": "100644"
+    }
+  ]
+}
