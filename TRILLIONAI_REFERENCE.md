@@ -10,7 +10,20 @@ Research-only source archive for TrillionAI Audit. This repository is **not** an
 - Tracked Git tree inventory: 5,220 entries, including 3,164 file blobs (35,665,535 bytes).
 - Upstream root licence: Apache License 2.0; retain original `LICENSE` and `COPYRIGHT` with all applicable component notices.
 - Import destination: **repository root on `main`** (no hidden source folder or separate branch required).
-- Verification status: **PENDING** until GitHub confirms the import and exact retained Git object identities.
+- Verification status: **VERIFIED — real source installed on `main`; GitHub Actions completed successfully.**
+
+## Verified source-import result
+
+- [Successful GitHub Actions run](https://github.com/Anselm04/Syft-Source-Code-Reference/actions/runs/43649079789)
+- Original pinned upstream commit: `e543a0007a0a2a812d13815a021b7a927f9013ac`
+- Original pinned upstream Git tree: `1c21ca88902b5d95e7870f3ee703bf7bcd5b4816`
+- Verified main-branch Git tree after import: `4af5a85a1774748cf2d1842e27053079e19d748d`
+- **3,164 original tracked file blobs**; **5,220** Git tree entries including directories.
+- Imported source-object mismatches: **zero** outside intentional removal of upstream `.github/workflows/` and the added research document.
+- Original `LICENSE` and `COPYRIGHT` present and readable on `main`.
+- Original project source folders appear directly at repository root.
+
+The destination tree differs from upstream only by the documented CI workflow omission and TrillionAI research note. This verifies source fidelity, not runtime execution or passing product tests.
 
 ## Import and safety
 
