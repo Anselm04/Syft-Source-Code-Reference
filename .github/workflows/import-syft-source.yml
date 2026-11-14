@@ -1,0 +1,98 @@
+name: Import and verify pinned Syft source on main
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/import-syft-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: syft-reference-source-import
+  cancel-in-progress: false
+
+jobs:
+  import-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout research repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+
+      - name: Import upstream source, preserve licence, and verify remote
+        shell: bash
+        env:
+          PINNED_SHA: 'e543a0007a0a2a812d13815a021b7a927f9013ac'
+          PINNED_TREE: '1c21ca88902b5d95e7870f3ee703bf7bcd5b4816'
+        run: |
+          set -euo pipefail
+          git config user.name 'TrillionAI Source Archive Bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git remote add source-upstream https://github.com/anchore/syft.git
+          git fetch --no-tags --depth=1 source-upstream "$PINNED_SHA"
+          test "$(git rev-parse 'FETCH_HEAD^{commit}')" = "$PINNED_SHA" || {
+            echo "::error::Upstream commit mismatch"
+            exit 1
+          }
+          test "$(git rev-parse 'FETCH_HEAD^{tree}')" = "$PINNED_TREE" || {
+            echo "::error::Upstream Git tree mismatch"
+            exit 1
+          }
+          git cat-file -e "$PINNED_SHA:LICENSE"
+          git cat-file -e "$PINNED_SHA:COPYRIGHT"
+          
+          reference_blob="$(git rev-parse 'HEAD:README.md')"
+          git read-tree --reset "$PINNED_TREE"
+          git update-index --add --cacheinfo "100644,$reference_blob,TRILLIONAI_REFERENCE.md"
+          
+          # Disable upstream and importer GitHub Actions on destination main.
+          git ls-files -z '.github/workflows/' | xargs -0 -r git rm -r --cached --
+
+          git ls-tree -rz --full-tree "$PINNED_TREE" > /tmp/original-git-tree
+          git ls-files --stage -z > /tmp/import-index
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def entries(data, index):
+              out = {}
+              for row in data.split(b'\0'):
+                  if not row:
+                      continue
+                  metadata, path = row.split(b'\t', 1)
+                  fields = metadata.split()
+                  out[path] = (fields[0], fields[1 if index else 2])
+              return out
+
+          original = entries(Path('/tmp/original-git-tree').read_bytes(), False)
+          imported = entries(Path('/tmp/import-index').read_bytes(), True)
+
+          mismatches = [
+              path for path, ident in original.items()
+              if not path.startswith(b'.github/workflows/')
+              and imported.get(path) != ident
+          ]
+          extras = set(imported) - set(original)
+          if mismatches or extras != {b'TRILLIONAI_REFERENCE.md'}:
+              raise SystemExit(f'Source Git object mismatch: {mismatches[:5]!r}; extras: {extras!r}')
+          print(f'VERIFIED {len(original)} tracked files against original object identities')
+          PY
+
+          git commit -m "archive: install pinned Syft source directly on main"
+          git push origin HEAD:main
+          git fetch --no-tags origin main
+          local_tree="$(git rev-parse 'HEAD^{tree}')"
+          remote_tree="$(git rev-parse 'FETCH_HEAD^{tree}')"
+          test "$local_tree" = "$remote_tree" || {
+            echo "::error::Remote main Git tree mismatch"
+            exit 1
+          }
+          echo "VERIFIED PINNED UPSTREAM COMMIT: $PINNED_SHA"
+          echo "VERIFIED ORIGINAL TREE: $PINNED_TREE"
+          echo "VERIFIED REMOTE MAIN GIT TREE: $remote_tree"
+          echo "ACTUAL SOURCE ON MAIN; ORIGINAL LICENSE AND COPYRIGHT RETAINED"
